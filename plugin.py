@@ -3,7 +3,7 @@
 #           Author:     Dnpwwo, 2018
 #
 """
-<plugin key="EnvisaLink" name="DSC Alarm via EnvisaLink 4" author="dnpwwo" version="1.0.0" wikilink="https://github.com/dnpwwo/Domoticz-DSCEnvisalink-Plugin" externallink="http://www.eyezon.com/?page_id=176">
+<plugin key="EnvisaLink" name="DSC Alarm via EnvisaLink 4" author="dnpwwo" version="1.0.1" wikilink="https://github.com/dnpwwo/Domoticz-DSCEnvisalink-Plugin" externallink="http://www.eyezon.com/?page_id=176">
     <description>
         <h2>EnvisaLink 4 Alarm interface</h2><br/>
     </description>
@@ -200,7 +200,7 @@ class BasePlugin:
             zoneNumber = int(data[-3:])
             if (zoneNumber <= int(Parameters["Mode2"])):
                 self.alarmState['zone'][zoneNumber]['status'].update(evl_ResponseTypes[code]['status'])
-                Domoticz.Log(str.format("[zone {0}] state has updated: {1}", zoneNumber, json.dumps(evl_ResponseTypes[code]['status'])))
+                Domoticz.Debug(str.format("[zone {0}] state has updated: {1}", zoneNumber, json.dumps(evl_ResponseTypes[code]['status'])))
             else:
                 Domoticz.Debug(str.format("[zone {0}] state change ignored, invalid zone number.", zoneNumber))
             return zoneNumber
@@ -242,7 +242,7 @@ class BasePlugin:
                 parse = re.match('^[0-9]{2}$', data)
                 if parse:
                     self.alarmState['partition'][partitionNumber]['status'].update(evl_ArmModes[data[1]]['status'])
-                    Domoticz.Log(str.format("[partition {0}] state has updated: {1}", partitionNumber, json.dumps(evl_ArmModes[data[1]]['status'])))
+                    Domoticz.Debug(str.format("[partition {0}] state has updated: {1}", partitionNumber, json.dumps(evl_ArmModes[data[1]]['status'])))
                     return partitionNumber
                 else:
                     Domoticz.Error("Invalid data ("+data+") has been passed when arming the alarm.") 
@@ -250,7 +250,7 @@ class BasePlugin:
                 parse = re.match('^[0-9]+$', data)
                 if parse:
                     self.alarmState['partition'][partitionNumber]['status'].update(evl_ResponseTypes[code]['status'])
-                    Domoticz.Log(str.format("[partition {0}] state has updated: {1}", partitionNumber, json.dumps(evl_ResponseTypes[code]['status'])))
+                    Domoticz.Debug(str.format("[partition {0}] state has updated: {1}", partitionNumber, json.dumps(evl_ResponseTypes[code]['status'])))
                     
                     '''Log the user who last armed or disarmed the alarm'''
                     if code == '700':
