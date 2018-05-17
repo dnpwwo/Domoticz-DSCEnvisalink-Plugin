@@ -13,7 +13,7 @@ Controls a single DSC Alarm (PC1616) Envisalink on your network.
 
 ## Installation
 
-Python version 3.4 or higher required & Domoticz version 3.87xx or greater.
+Python version 3.4 or higher required & Domoticz version 3.9446 or greater.
 
 To install:
 * Go in your Domoticz directory using a command line and open the plugins directory.
