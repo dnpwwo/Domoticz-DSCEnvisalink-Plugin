@@ -1,16 +1,29 @@
-#           DSC EnvisaLink 4 Alarm interface Plugin
+#           DSC EnvisaLink 3 & 4 Alarm interface Plugin
 #
 #           Author:     Dnpwwo, 2018
 #
 """
-<plugin key="EnvisaLink" name="DSC Alarm via EnvisaLink 4" author="dnpwwo" version="1.0.1" wikilink="https://github.com/dnpwwo/Domoticz-DSCEnvisalink-Plugin" externallink="http://www.eyezon.com/?page_id=176">
+<plugin key="EnvisaLink" name="DSC Alarm via EnvisaLink" author="dnpwwo" version="2.1.7" wikilink="https://github.com/dnpwwo/Domoticz-DSCEnvisalink-Plugin" externallink="http://www.eyezon.com/?page_id=176">
     <description>
-        <h2>EnvisaLink 4 Alarm interface</h2><br/>
+        <h2>EnvisaLink 3 & 4 Alarm interface for DSC Alarms</h2><br/>
+        <h3>Features</h3>
+        <ul style="list-style-type:square">
+            <li>Shows Zone and Partition status in Domoticz</li>
+            <li>Can be integrated with the Domoticz Security Panel to allow Arm & Disarm operations from Domoticz</li>
+            <li>Bypassed Zones shown with Red banner in Domoticz</li>
+        </ul>
+        <h3>Devices</h3>
+        <ul style="list-style-type:square">
+            <li>Zones - Contact device per zone that show Open/Closed status.  These can be changed to 'Motion' devices in the Device Edit page and they will show On/Off (recommend setting an Off Delay otherwise activity is rarely seen in the Web UI)</li>
+            <li>Partition - Alert per partition that shows partition state, useful if you don't want to use the Security Panel integration or you have more than one partition.</li>
+            <li>Command Output - Contact device for each Command Output/Partition combination seen. The DSC only reports activation so an Off Delay must exist for the device to reset).</li>
+            <li>Security Panel - Optionally creates a Security Panel device that allows arming and disarming via Domoticz.</li>
+        </ul>
     </description>
     <params>
         <param field="Address" label="IP Address" width="200px" required="true" default="127.0.0.1"/>
         <param field="Port" label="Port" width="30px" required="true" default="4025"/>
-        <param field="Password" label="Password" width="200px" required="true" default=""/>
+        <param field="Password" label="Envisalink Password" width="200px" required="true" default="" password="true"/>
         <param field="Mode1" label="Max. Partitions" width="50px">
             <options>
                 <option label="1" value="1" default="true"/>
@@ -19,12 +32,12 @@
         </param>
         <param field="Mode2" label="Max. Zones" width="50px">
             <options>
-                <option label="1" value="1" default="true"/>
+                <option label="1" value="1"/>
                 <option label="2" value="2" />
                 <option label="3" value="3" />
                 <option label="4" value="4" />
                 <option label="5" value="5" />
-                <option label="6" value="6" />
+                <option label="6" value="6" default="true"/>
                 <option label="7" value="7" />
                 <option label="8" value="8" />
                 <option label="9" value="9" />
@@ -41,9 +54,16 @@
                 <option label="20" value="20" />
             </options>
         </param>
+        <param field="Mode3" label="Integrated Security Panel" width="75px">
+            <options>
+                <option label="True" value="True" default="True"/>
+                <option label="False" value="False" />
+            </options>
+        </param>
+        <param field="Mode4" label="Alarm Passcode" width="75px" default="" password="true" />
         <param field="Mode5" label="Time Out Lost Devices" width="75px">
             <options>
-                <option label="True" value="True" default="true"/>
+                <option label="True" value="True" default="True"/>
                 <option label="False" value="False" />
             </options>
         </param>
@@ -70,6 +90,11 @@ import sys
 import re
 import json
 
+ZONE_BASE = 0
+SECURITY_PANEL = 100
+PARTITION_BASE = 100  # First partition will be this + partition number so 101
+OUTPUT_BASE = 100     # Device will be number will be this + 10*partition + output. i.e partition 1 output 2 = Device 112
+
 class BasePlugin:
     alarmConn = None
     alarmState = None
@@ -89,7 +114,6 @@ class BasePlugin:
         self.alarmConn.Connect()
 
         Domoticz.Heartbeat(self.heartbeatInterval)
-        return True
 
     def onConnect(self, Connection, Status, Description):
         if (Status == 0):
@@ -118,27 +142,39 @@ class BasePlugin:
 
                     # Sync Devices to Alarm state
                     for zone in self.alarmState['zone']:
-                        if (not zone in Devices):
-                            Domoticz.Device(Name="Zone "+str(zone), Unit=zone, Type=244, Subtype=73, Switchtype=2).Create()
+                        if (not ZONE_BASE+zone in Devices):
+                            Domoticz.Device(Name="Zone "+str(ZONE_BASE+zone), Unit=ZONE_BASE+zone, Type=244, Subtype=73, Switchtype=2).Create()
                         sValue = 'Closed'
                         if self.alarmState['zone'][zone]['status']['open']:   sValue='Open'
                         if self.alarmState['zone'][zone]['status']['bypass']: sValue='Bypass'
                         if self.alarmState['zone'][zone]['status']['tamper']: sValue='Tamper'
-                        UpdateDevice(zone, \
+                        UpdateDevice(ZONE_BASE+zone, \
                                      1 if self.alarmState['zone'][zone]['status']['open'] else 0, \
                                      sValue, \
                                      self.alarmState['zone'][zone]['status']['bypass'])
                     
                     for part in self.alarmState['partition']:
-                        if (not 100+part in Devices):
-                            Domoticz.Device(Name="Partition "+str(part), Unit=100+part, TypeName='Alert').Create()
+                        if (not PARTITION_BASE+part in Devices):
+                            Domoticz.Device(Name="Partition "+str(part), Unit=PARTITION_BASE+part, TypeName='Alert').Create()
                         nValue = 1 if self.alarmState['partition'][part]['status']['ready'] else 2
                         if self.alarmState['partition'][part]['status']['trouble']: nValue=2
                         if self.alarmState['partition'][part]['status']['alarm']:   nValue=3
-                        UpdateDevice(100+part, nValue, \
+                        UpdateDevice(PARTITION_BASE+part, nValue, \
                                      self.alarmState['partition'][part]['status']['alpha'], \
                                      self.alarmState['partition'][part]['status']['trouble'])
-                    
+
+                    if Parameters["Mode3"] != "False":
+                        if (not SECURITY_PANEL in Devices):
+                            #Domoticz.Device(Name="Security Panel", Unit=SECURITY_PANEL, TypeName="Security Panel").Create()
+                            Domoticz.Device(Name="Security Panel", Unit=SECURITY_PANEL, Type=32, Subtype=131).Create()
+                            Domoticz.Log("Created Domoticz integrated Security Panel device for partition 1.")
+                        nValue=0    # sStatusNormal
+                        if self.alarmState['partition'][1]['status']['alarm']:        nValue=2              # sStatusAlarm
+                        if self.alarmState['partition'][1]['status']['armed_away']:   nValue=9              # sStatusArmAway
+                        if self.alarmState['partition'][1]['status']['armed_stay']:   nValue=11             # sStatusArmHome
+                        if self.alarmState['partition'][1]['status']['trouble']:      nValue=nValue+128     # sStatusNormalTamper or sStatusAlarmTamper
+                        UpdateDevice(SECURITY_PANEL, nValue, "", self.alarmState['partition'][part]['status']['trouble'])
+
                 except AttributeError:
                     Domoticz.Error(str.format("No handler exists for code: {0}. Skipping.", evl_ResponseTypes[code]['handler']))
                 except KeyError as err:
@@ -149,6 +185,24 @@ class BasePlugin:
                 self.notHandled(code, data)
         else:
             Domoticz.Error("EnvisaLink returned invalid message: '"+str(strData)+"'. Checksums: Calculated "+str(checkSum)+" and Original "+str(int(origChecksum,16)))
+
+    def onSecurityEvent(self, Unit, Level, Description):
+        Domoticz.Status("onSecurityEvent called for Level " + str(Level) + ": Description '" + str(Description) + "', Connected: " + str(self.alarmConn.Connected()))
+        # Multiple events can be passed for the same action, e.g during arming 1 event when requested, 1 event after exit timer counts to 0
+        if (Level == 0):    # Disarm
+            if ((self.alarmState['partition'][1]['status']['armed_stay'] == True) or (self.alarmState['partition'][1]['status']['armed_away'] == True)):
+                Domoticz.Status("Requesting partition Disarm")
+                self.alarmConn.Send(CreateChecksum(evl_Commands['Disarm']+'1'+Parameters["Mode4"]))
+        elif (Level == 1):  # Arm Stay
+            if ((self.alarmState['partition'][1]['status']['armed_stay'] == False) and (self.alarmState['partition'][1]['status']['armed_away'] == False)):
+                Domoticz.Status("Requesting partition Armed Stay")
+                self.alarmConn.Send(CreateChecksum(evl_Commands['ArmStay']+'1'))
+        elif (Level == 2):  # Arm Away
+            if ((self.alarmState['partition'][1]['status']['armed_stay'] == False) and (self.alarmState['partition'][1]['status']['armed_away'] == False)):
+                Domoticz.Status("Requesting partition Armed Away")
+                self.alarmConn.Send(CreateChecksum(evl_Commands['ArmAway']+'1'))
+        else:
+            Domoticz.Error("Security Event contains unknown data: '"+str(Level)+"' with description: '"+Description+"'")
 
     def onCommand(self, Unit, Command, Level, Hue):
         Domoticz.Debug("onCommand called for Unit " + str(Unit) + ": Parameter '" + str(Command) + "', Level: " + str(Level) + ", Connected: " + str(self.alarmConn.Connected()))
@@ -210,14 +264,14 @@ class BasePlugin:
     def handle_zone_timer_dump(self, code, data):
         parse = re.match('^[0-9A-F]{2}$', data)
         try:
-            Domoticz.Log(str.format("Message: '{0}' with data: {1}", evl_ResponseTypes[code]['name'], data))
+            Domoticz.Debug(str.format("Message: '{0}' with data: {1}", evl_ResponseTypes[code]['name'], data))
         except:
             Domoticz.Error("zone_timer_dump error: '"+code+"' command, data: "+data)
 
     def handle_zone_bypass_update(self, code, data):
         """Event 616, Bypassed Zones Bit field Dump."""
         parse = re.match('^[0-9A-F]{2}$', data)
-        Domoticz.Log(str.format("Message: '{0}' with data: {1}", evl_ResponseTypes[code]['name'], data))
+        Domoticz.Debug(str.format("Message: '{0}' with data: {1}", evl_ResponseTypes[code]['name'], data))
         allBypasses = [data[i:i+2] for i in range(0, len(data), 2)]
         zoneOffset = 0
         maxZone = int(Parameters["Mode2"])
@@ -307,12 +361,34 @@ class BasePlugin:
         """Handle time responses, e.g. '2128042318'"""
         parse = re.match('^[0-9]{10}$', data)
         if parse:
-            theTime = datetime.now()
-            theTime.replace(hour=int(data[1:2]),minute=int(data[3:4]),month=int(data[5:6]),day=int(data[7:8]),year=2000+int(data[9:10]))
-            message = '{:02}:{:02} {:02}/{:02}/{:04}'.format(theTime.hour, theTime.minute, theTime.day, theTime.month, theTime.year)
-            Domoticz.Log("Received time synchronization ('"+message+"')")
+            try:
+                theTime = datetime.now()
+                theTime.replace(hour=int(data[1:2]),minute=int(data[3:4]),month=int(data[5:6]),day=int(data[7:8]),year=2000+int(data[9:10]))
+                message = '{:02}:{:02} {:02}/{:02}/{:04}'.format(theTime.hour, theTime.minute, theTime.day, theTime.month, theTime.year)
+                Domoticz.Log("Received time synchronization ('"+message+"')")
+            except ValueError:
+                Domoticz.Error(str.format("Error processing time synchronization: '{0}'. Skipping.", data))
         else:
             Domoticz.Error("Invalid time data ("+data+") has been passed for code: '"+code+"'.") 
+
+    def handle_output_pressed(self, code, data):
+        """Command Output Pressed, code: '912', Data: <partition><output> e.g '11'"""
+        part = data[:1]
+        output = data[-1:]
+        deviceNo = OUTPUT_BASE+int(data)
+        if (not deviceNo in Devices):
+            Domoticz.Device(Name="Partition "+part+" Output "+output, Unit=deviceNo, Type=17, Subtype=0, Switchtype=9).Create()
+            Domoticz.Log("Created Command Output device for Partition "+part+" Output "+output)
+        UpdateDevice(deviceNo, 1, "On", False)
+        Domoticz.Log("Command output pressed for Partition "+part+" Output "+output)
+
+    def handle_system_response_error(self, code, data):
+        """Handle system error responses"""
+        try:
+            Domoticz.Error(str.format("System Error: '{0}' with data: {1}", evl_ResponseTypes[code]['name'], data))
+            Domoticz.Error(str.format("---> Details: '{0}'", evl_Errors[data]['description'] ))
+        except:
+            Domoticz.Error("Response error not handled: '"+code+"' command, data: "+data)
 
     def handle_command_response_error(self, code, data):
         """Handle command error responses"""
@@ -324,7 +400,7 @@ class BasePlugin:
     def handle_message_response_error(self, code, data):
         """Handle command message responses"""
         try:
-            Domoticz.Log(str.format("Message: '{0}' with data: {1}", evl_ResponseTypes[code]['name'], data))
+            Domoticz.Log(str.format("Message {0}: '{1}' with data: {2}", code, evl_ResponseTypes[code]['name'], data))
         except:
             Domoticz.Error("Response message not handled: '"+code+"' command, data: "+data)
 
@@ -396,6 +472,10 @@ def onMessage(Connection, Data):
     global _plugin
     _plugin.onMessage(Connection, Data)
 
+def onSecurityEvent(Unit, Level, Description):
+    global _plugin
+    _plugin.onSecurityEvent(Unit, Level, Description)
+
 def onCommand(Unit, Command, Level, Hue):
     global _plugin
     _plugin.onCommand(Unit, Command, Level, Hue)
@@ -439,5 +519,5 @@ def UpdateDevice(Unit, nValue, sValue, TimedOut):
     if (Unit in Devices):
         if (Devices[Unit].nValue != nValue) or (Devices[Unit].sValue != sValue) or (Devices[Unit].TimedOut != TimedOut):
             Devices[Unit].Update(nValue=nValue, sValue=str(sValue), TimedOut=TimedOut)
-            Domoticz.Log("Update "+str(nValue)+":'"+str(sValue)+"' ("+Devices[Unit].Name+")")
+            Domoticz.Debug("Update "+str(nValue)+":'"+str(sValue)+"' ("+Devices[Unit].Name+")")
     return

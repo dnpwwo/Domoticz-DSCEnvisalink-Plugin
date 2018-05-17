@@ -14,12 +14,12 @@ evl_Commands = {
     'StatusReport' : '001',
     'Login' : '005',
     'DumpZoneTimers' : '008',
-	'TimeSync' : '010',
-    'ArmStay' : '031',
+    'TimeSync' : '010',
     'ArmAway' : '030',
+    'ArmStay' : '031',
     'ArmMax' : '032',
     'Disarm' : '040',
-	'TimeBroadcast': '0561',
+    'TimeBroadcast': '0561',
     'Panic' : '060',
     'PartitionKeypress' : '071',
     'SendCode' : '200',
@@ -33,25 +33,25 @@ evl_PanicTypes = {
 }
 
 evl_LedMask = {
-    'Ready' : 		0x01,
-    'Armed' : 		0x02,
-    'Memory' : 		0x04,
-    'Bypass' : 		0x08,
-    'Trouble' : 	0x10,
-    'Program' : 	0x20,
-    'Fire' : 		0x40,
-    'Backlight' : 	0x80
+    'Ready' :       0x01,
+    'Armed' :       0x02,
+    'Memory' :      0x04,
+    'Bypass' :      0x08,
+    'Trouble' :     0x10,
+    'Program' :     0x20,
+    'Fire' :        0x40,
+    'Backlight' :   0x80
 }
 
 evl_TroubleMask = {
-    'Service is Required' : 	0x01,
-    'AC Power Lost' : 			0x02,
-    'Telephone Line Fault' : 	0x04,
-    'Failure to Communicate' : 	0x08,
-    'Sensor/Zone Fault' : 		0x10,
-    'Sensor/Zone Tamper' : 		0x20,
+    'Service is Required' :     0x01,
+    'AC Power Lost' :           0x02,
+    'Telephone Line Fault' :    0x04,
+    'Failure to Communicate' :  0x08,
+    'Sensor/Zone Fault' :       0x10,
+    'Sensor/Zone Tamper' :      0x20,
     'Sensor/Zone Low Battery' : 0x40,
-    'Loss of Time' : 			0x80
+    'Loss of Time' :            0x80
 }
 
 evl_ArmModes = {
@@ -62,12 +62,13 @@ evl_ArmModes = {
     }
 
 evl_ResponseTypes = {
-    '505' : {'name':'Login Prompt', 'handler':'login'},
-    '615' : {'name':'Envisalink Zone Timer Dump', 'handler':'zone_timer_dump'},
-    '616' : {'name':'Zone Restored', 'handler':'zone_bypass_update'},
     '500' : {'name':'Poll', 'handler':'poll_response'},
     '501' : {'name':'Invalid Checksum', 'handler':'command_response_error'},
+    '502' : {'name':'An error has been detected', 'handler':'system_response_error'},
+    '505' : {'name':'Login Prompt', 'handler':'login'},
     '550' : {'name':'Time Response', 'handler':'time_response'},
+    '615' : {'name':'Envisalink Zone Timer Dump', 'handler':'zone_timer_dump'},
+    '616' : {'name':'Zone Restored', 'handler':'zone_bypass_update'},
     '900' : {'name':'EnterCode', 'handler':'send_code'},
 
 #ZONE UPDATES
@@ -114,6 +115,8 @@ evl_ResponseTypes = {
     '671' : {'name':'Function Not Available', 'handler':'command_response_error'},
     '672' : {'name':'Failure to Arm', 'handler':'command_response_error'},
     '680' : {'name':'System in Installers Mode', 'handler':'message_response_error'},
+    '701' : {'name':'Special Closing', 'handler':'message_response_error'},
+    '702' : {'name':'Partial Closing - one or more zones have been bypassed', 'handler':'message_response_error'},
     '800' : {'name':'LowBatTrouble', 'handler':'keypad_update', 'status':{'bat_trouble': True, 'alpha' : 'Low Battery'}},
     '801' : {'name':'LowBatTroubleOff', 'handler':'keypad_update', 'status':{'bat_trouble': False, 'alpha' : 'Low Battery Cleared'}},
     '802' : {'name':'ACTrouble', 'handler':'keypad_update', 'status':{'ac_present': False, 'alpha' : 'AC Power Lost'}},
@@ -121,4 +124,32 @@ evl_ResponseTypes = {
     '829' : {'name':'SystemTamper', 'handler':'keypad_update', 'status':{'alpha' : 'System tamper'}},
     '830' : {'name':'SystemTamperOff', 'handler':'keypad_update', 'status':{'alpha' : 'System tamper Restored'}},
     '849' : {'name':'Verbose Trouble Status', 'handler':'verbose_status'},
+    '912' : {'name':'Command Output Pressed', 'handler':'output_pressed'},
 }
+
+evl_Errors = {
+	'000' : {'description' : 'No Error'},
+	'001' : {'description' : 'Receive Buffer Overrun (a command is received while another is still being processed)'},
+	'002' : {'description' : 'Receive Buffer Overflow'},
+	'003' : {'description' : 'Transmit Buffer Overflow'},
+	
+	'010' : {'description' : 'Keybus Transmit Buffer Overrun'},
+	'011' : {'description' : 'Keybus Transmit Time Timeout'},
+	'012' : {'description' : 'Keybus Transmit Mode Timeout'},
+	'013' : {'description' : 'Keybus Transmit Keystring Timeout'},
+	'014' : {'description' : 'Keybus Interface Not Functioning (the TPI cannot communicate with the security system)'},
+	'015' : {'description' : 'Keybus Busy (Attempting to Disarm or Arm with user code)'},
+	'016' : {'description' : 'Keybus Busy – Lockout (The panel is currently in Keypad Lockout – too many disarm attempts)'},
+	'017' : {'description' : 'Keybus Busy – Installers Mode (Panel is in installers mode, most functions are unavailable)'},
+	'018' : {'description' : 'Keybus Busy – General Busy (The requested partition is busy)'},
+	
+	'020' : {'description' : 'API Command Syntax Error'},
+	'021' : {'description' : 'API Command Partition Error (Requested Partition is out of bounds)'},
+	'022' : {'description' : 'API Command Not Supported'},
+	'023' : {'description' : 'API System Not Armed (sent in response to a disarm command)'},
+	'024' : {'description' : 'API System Not Ready to Arm (system is either not-secure, in exit-delay, or already armed)'},
+	'025' : {'description' : 'API Command Invalid Length'},
+	'026' : {'description' : 'API User Code not Required'},
+	'027' : {'description' : 'API Invalid Characters in Command (no alpha characters are allowed except for checksum)'},
+}
+
