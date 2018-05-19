@@ -11,6 +11,11 @@ Controls a single DSC Alarm (PC1616) Envisalink on your network.
 * Optionally creates a Security Panel device that allows arming and disarming via Domoticz.
 * When network connectivity is lost the Domoticz UI will optionally show the device(s) with Red banner
 
+## Example
+
+Example of a single partiion with six zones. Zone Front Door is bypassed so the partition is showing Ready but forced arming would be required.  Optional Security Panel integration has been selected, clicking the padlock will bring up the Domoticz alarm keypad to allow Arm Home, Arm Away and Disarm functionality.
+Three zones have been converted to PIRs within Domoticz.
+
 ![picture](DSCAlarm.jpg)
 
 ## Installation
