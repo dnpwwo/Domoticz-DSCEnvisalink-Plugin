@@ -11,6 +11,8 @@ Controls a single DSC Alarm (PC1616) Envisalink on your network.
 * Optionally creates a Security Panel device that allows arming and disarming via Domoticz.
 * When network connectivity is lost the Domoticz UI will optionally show the device(s) with Red banner
 
+![picture](DSCAlarm.jpg)
+
 ## Installation
 
 Python version 3.4 or higher required & Domoticz version 3.9446 or greater.
