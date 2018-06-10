@@ -3,7 +3,7 @@
 #           Author:     Dnpwwo, 2018
 #
 """
-<plugin key="EnvisaLink" name="DSC Alarm via EnvisaLink" author="dnpwwo" version="2.1.7" wikilink="https://github.com/dnpwwo/Domoticz-DSCEnvisalink-Plugin" externallink="http://www.eyezon.com/?page_id=176">
+<plugin key="EnvisaLink" name="DSC Alarm via EnvisaLink" author="dnpwwo" version="2.1.8" wikilink="https://github.com/dnpwwo/Domoticz-DSCEnvisalink-Plugin" externallink="http://www.eyezon.com/?page_id=176">
     <description>
         <h2>EnvisaLink 3 & 4 Alarm interface for DSC Alarms</h2><br/>
         <h3>Features</h3>
@@ -363,7 +363,7 @@ class BasePlugin:
         if parse:
             try:
                 theTime = datetime.now()
-                theTime.replace(hour=int(data[1:2]),minute=int(data[3:4]),month=int(data[5:6]),day=int(data[7:8]),year=2000+int(data[9:10]))
+                theTime.replace(hour=int(data[:2]),minute=int(data[2:4]),month=int(data[4:6]),day=int(data[6:8]),year=2000+int(data[8:]))
                 message = '{:02}:{:02} {:02}/{:02}/{:04}'.format(theTime.hour, theTime.minute, theTime.day, theTime.month, theTime.year)
                 Domoticz.Log("Received time synchronization ('"+message+"')")
             except ValueError:

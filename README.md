@@ -67,3 +67,4 @@ DSC must have an Envisalink 3 or 4 attached as an additional keypad.
 | 1.0.0 | Initial upload version |
 | 1.1.0 | Added Command Output support |
 | 2.1.7 | Added integration with Security Panel |
+| 2.1.8 | Bugfix: time synchronisation error message |
