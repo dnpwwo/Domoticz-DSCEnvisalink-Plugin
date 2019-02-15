@@ -13,7 +13,7 @@ Controls a single DSC Alarm (PC1616) Envisalink on your network.
 
 ## Example
 
-Example of a single partiion with six zones. Zone Front Door is bypassed so the partition is showing Ready but forced arming would be required.  Optional Security Panel integration has been selected, clicking the padlock will bring up the Domoticz alarm keypad to allow Arm Home, Arm Away and Disarm functionality.
+Example of a single partition with six zones. Zone Front Door is bypassed so the partition is showing Ready but forced arming would be required.  Optional Security Panel integration has been selected, clicking the padlock will bring up the Domoticz alarm keypad to allow Arm Home, Arm Away and Disarm functionality.
 Three zones have been converted to PIRs within Domoticz.
 
 ![picture](DSCAlarm.jpg)
