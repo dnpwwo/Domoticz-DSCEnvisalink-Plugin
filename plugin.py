@@ -28,6 +28,12 @@
             <options>
                 <option label="1" value="1" default="true"/>
                 <option label="2" value="2" />
+                <option label="3" value="3" />
+                <option label="4" value="4" />
+                <option label="5" value="5" />
+                <option label="6" value="6" />
+                <option label="7" value="7" />
+                <option label="8" value="8" />
             </options>
         </param>
         <param field="Mode2" label="Max. Zones" width="50px">
@@ -52,7 +58,51 @@
                 <option label="18" value="18" />
                 <option label="19" value="19" />
                 <option label="20" value="20" />
-            </options>
+                <option label="21" value="21" />
+                <option label="22" value="22" />
+                <option label="23" value="23" />
+                <option label="24" value="24" />
+                <option label="25" value="25" />
+                <option label="26" value="26" />
+                <option label="27" value="27" />
+                <option label="28" value="28" />
+                <option label="29" value="29" />
+                <option label="30" value="30" />
+                <option label="31" value="31" />
+                <option label="32" value="32" />
+                <option label="33" value="33" />
+                <option label="34" value="34" />
+                <option label="35" value="35" />
+                <option label="36" value="36" />
+                <option label="37" value="37" />
+                <option label="38" value="38" />
+                <option label="39" value="39" />
+                <option label="40" value="40" />
+                <option label="41" value="41" />
+                <option label="42" value="42" />
+                <option label="43" value="43" />
+                <option label="44" value="44" />
+                <option label="45" value="45" />
+                <option label="46" value="46" />
+                <option label="47" value="47" />
+                <option label="48" value="48" />
+                <option label="49" value="49" />
+                <option label="50" value="50" />
+                <option label="51" value="51" />
+                <option label="52" value="52" />
+                <option label="53" value="53" />
+                <option label="54" value="54" />
+                <option label="55" value="55" />
+                <option label="56" value="56" />
+                <option label="57" value="57" />
+                <option label="58" value="58" />
+                <option label="59" value="59" />
+                <option label="60" value="60" />
+                <option label="61" value="61" />
+                <option label="62" value="62" />
+                <option label="63" value="63" />
+                <option label="64" value="64" />
+               </options>
         </param>
         <param field="Mode3" label="Integrated Security Panel" width="75px">
             <options>
